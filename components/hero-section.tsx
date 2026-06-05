@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Zap, Trophy, Clock } from "lucide-react";
+import { ArrowRight, Zap, BookOpen, Lightbulb } from "lucide-react";
 
 export function HeroSection() {
   return (
@@ -16,19 +16,19 @@ export function HeroSection() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
           <Zap className="w-4 h-4 text-primary" />
-          <span className="text-primary text-sm font-medium">数模竞赛的 AI 革命已到来</span>
+          <span className="text-primary text-sm font-medium">AI 建模辅助工具内测中</span>
         </div>
 
         {/* Main Heading */}
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight text-balance">
-          让 AI 成为你的
+          SigmaPilot
           <br />
-          <span className="text-primary">数模竞赛最强外挂</span>
+          <span className="text-primary">AI 建模副驾驶</span>
         </h1>
 
         {/* Subheading */}
-        <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto text-pretty">
-          从赛题分析到论文输出，ModelPilot 全程陪伴，帮你实现从小白到国奖的华丽蜕变
+        <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-3xl mx-auto text-pretty">
+          上传赛题与数据，获取审题拆解、建模路线、代码框架、图表建议和论文结构参考
         </p>
 
         {/* CTA Buttons */}
@@ -53,28 +53,28 @@ export function HeroSection() {
           </Button>
         </div>
 
-        {/* Stats */}
+        {/* Feature Highlights */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-2xl mx-auto">
           <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-2 text-primary">
-              <Trophy className="w-5 h-5" />
-              <span className="text-3xl font-bold">98%</span>
+              <BookOpen className="w-5 h-5" />
+              <span className="text-lg font-semibold">审题拆解</span>
             </div>
-            <span className="text-muted-foreground text-sm">用户获奖率</span>
+            <span className="text-muted-foreground text-sm">快速理解题目要点</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-2 text-primary">
-              <Clock className="w-5 h-5" />
-              <span className="text-3xl font-bold">10x</span>
+              <Lightbulb className="w-5 h-5" />
+              <span className="text-lg font-semibold">思路启发</span>
             </div>
-            <span className="text-muted-foreground text-sm">效率提升</span>
+            <span className="text-muted-foreground text-sm">多角度建模参考</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-2 text-primary">
               <Zap className="w-5 h-5" />
-              <span className="text-3xl font-bold">5000+</span>
+              <span className="text-lg font-semibold">代码参考</span>
             </div>
-            <span className="text-muted-foreground text-sm">服务用户</span>
+            <span className="text-muted-foreground text-sm">框架示例供学习</span>
           </div>
         </div>
       </div>

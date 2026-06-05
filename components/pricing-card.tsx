@@ -8,12 +8,12 @@ interface PricingCardProps {
 }
 
 const features = [
-  "完整的建模思路分析报告",
-  "多种算法模型对比推荐",
-  "Python/MATLAB 代码框架",
-  "符合规范的论文框架",
-  "数据可视化模板",
-  "7×24 小时 AI 响应",
+  "完整的审题拆解报告",
+  "多种建模方向参考",
+  "Python/MATLAB 代码框架示例",
+  "论文结构框架参考",
+  "数据可视化图表建议",
+  "格式规范性检查提示",
 ];
 
 export function PricingCard({ onPurchase }: PricingCardProps) {
@@ -27,14 +27,14 @@ export function PricingCard({ onPurchase }: PricingCardProps) {
         <div className="absolute -top-4 left-1/2 -translate-x-1/2">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium">
             <Sparkles className="w-4 h-4" />
-            限时特惠
+            内测优惠
           </div>
         </div>
 
         {/* Header */}
         <div className="text-center mb-8 pt-4">
-          <h3 className="text-2xl font-bold text-foreground mb-2">单次解锁</h3>
-          <p className="text-muted-foreground mb-6">一次付费，终身受益</p>
+          <h3 className="text-2xl font-bold text-foreground mb-2">单次使用</h3>
+          <p className="text-muted-foreground mb-6">一次付费，获取完整分析报告</p>
           
           {/* Price */}
           <div className="flex items-baseline justify-center gap-2">

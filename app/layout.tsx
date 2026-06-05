@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'ModelPilot - 数模 AI 副驾驶',
-  description: '让 AI 成为你的数模竞赛最强外挂',
+  title: 'SigmaPilot - AI 建模副驾驶',
+  description: '上传赛题与数据，获取审题拆解、建模路线、代码框架、图表建议和论文结构参考',
   generator: 'v0.app',
   icons: {
     icon: [

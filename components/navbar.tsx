@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
 
 interface NavbarProps {
   onPurchase: () => void;
+  user: User | null;
 }
 
-export function Navbar({ onPurchase }: NavbarProps) {
+export function Navbar({ onPurchase, user }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -37,7 +40,16 @@ export function Navbar({ onPurchase }: NavbarProps) {
           </div>
 
           {/* CTA Button */}
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
+            {user ? (
+              <Button asChild variant="outline" className="bg-transparent border-border text-foreground hover:bg-secondary">
+                <Link href="/dashboard">工作台</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" className="text-foreground hover:bg-secondary">
+                <Link href="/login">登录</Link>
+              </Button>
+            )}
             <Button onClick={onPurchase} className="btn-gradient border-0">
               立即解锁
             </Button>
@@ -77,6 +89,15 @@ export function Navbar({ onPurchase }: NavbarProps) {
               >
                 定价
               </a>
+              {user ? (
+                <Button asChild variant="outline" className="bg-transparent border-border text-foreground hover:bg-secondary w-full">
+                  <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>工作台</Link>
+                </Button>
+              ) : (
+                <Button asChild variant="ghost" className="text-foreground hover:bg-secondary w-full">
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>登录</Link>
+                </Button>
+              )}
               <Button
                 onClick={() => {
                   setIsMenuOpen(false);

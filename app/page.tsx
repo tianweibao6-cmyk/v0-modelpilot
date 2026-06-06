@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 import { UploadZone } from "@/components/upload-zone";
 import { FeatureCards } from "@/components/feature-cards";
 import { PricingCard } from "@/components/pricing-card";
@@ -11,15 +14,35 @@ import { Footer } from "@/components/footer";
 import { AlertCircle } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handlePurchase = useCallback(() => {
+    // 购买/上传/解锁前需先登录
+    if (!user) {
+      router.push("/login?redirect=/");
+      return;
+    }
     setIsPaymentModalOpen(true);
-  }, []);
+  }, [user, router]);
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar onPurchase={handlePurchase} />
+      <Navbar onPurchase={handlePurchase} user={user} />
       <HeroSection onPurchase={handlePurchase} />
       
       {/* Upload Section */}

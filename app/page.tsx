@@ -38,7 +38,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-4 bg-card/30">
+      <section id="features" className="py-24 px-4 bg-secondary/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-primary text-sm font-semibold tracking-wider uppercase">
@@ -76,7 +76,7 @@ export default function Home() {
       {/* Disclaimer Section */}
       <section className="py-12 px-4 border-t border-border">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-start gap-4 p-6 rounded-xl bg-card border border-border">
+          <div className="flex items-start gap-4 p-6 rounded-xl bg-secondary/50 border border-border shadow-soft">
             <AlertCircle className="w-6 h-6 text-muted-foreground flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-foreground font-semibold mb-2">免责声明</h3>

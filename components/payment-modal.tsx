@@ -54,9 +54,9 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     <div
       ref={modalRef}
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-md"
     >
-      <div className="relative w-full max-w-lg rounded-3xl bg-card border border-border shadow-2xl shadow-primary/10 animate-in fade-in zoom-in-95 duration-300">
+      <div className="relative w-full max-w-lg rounded-3xl bg-card border border-border shadow-2xl animate-in fade-in zoom-in-95 duration-300">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -103,7 +103,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
           {/* Pay Button */}
           <Button
             onClick={handlePay}
-            className="w-full py-6 text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+            className="w-full py-6 text-lg font-semibold btn-gradient border-0"
           >
             立即支付 39 元
           </Button>

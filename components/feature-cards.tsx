@@ -47,14 +47,11 @@ export function FeatureCards() {
       {features.map((feature, index) => (
         <div
           key={index}
-          className="group relative p-8 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+          className="group relative p-8 rounded-2xl bg-card border border-border shadow-soft hover:border-primary/40 hover:shadow-soft-lg transition-all duration-300"
         >
-          {/* Background Gradient on Hover */}
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
           <div className="relative">
             {/* Icon */}
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors duration-300">
+            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/15 transition-colors duration-300">
               <feature.icon className="w-7 h-7 text-primary" />
             </div>
 

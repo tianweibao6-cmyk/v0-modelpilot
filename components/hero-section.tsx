@@ -8,13 +8,13 @@ export function HeroSection({ onPurchase }: { onPurchase: () => void }) {
     <section className="relative pt-32 pb-20 px-4 overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative max-w-4xl mx-auto text-center">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/15 mb-8">
           <Zap className="w-4 h-4 text-primary" />
           <span className="text-primary text-sm font-medium">AI 建模辅助工具内测中</span>
         </div>
@@ -23,7 +23,7 @@ export function HeroSection({ onPurchase }: { onPurchase: () => void }) {
         <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight text-balance">
           SigmaPilot
           <br />
-          <span className="text-primary">AI 建模副驾驶</span>
+          <span className="text-gradient">AI 建模副驾驶</span>
         </h1>
 
         {/* Subheading */}
@@ -36,7 +36,7 @@ export function HeroSection({ onPurchase }: { onPurchase: () => void }) {
           <Button 
             onClick={onPurchase}
             size="lg" 
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg gap-2"
+            className="btn-gradient px-8 py-6 text-lg gap-2 border-0"
           >
             立即上传赛题
             <ArrowRight className="w-5 h-5" />
@@ -45,7 +45,7 @@ export function HeroSection({ onPurchase }: { onPurchase: () => void }) {
             asChild
             variant="outline" 
             size="lg" 
-            className="px-8 py-6 text-lg border-border hover:bg-secondary"
+            className="px-8 py-6 text-lg bg-transparent border-border text-foreground hover:bg-secondary"
           >
             <a href="#features">了解更多</a>
           </Button>

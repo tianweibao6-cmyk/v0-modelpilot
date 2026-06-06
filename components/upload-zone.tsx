@@ -27,9 +27,6 @@ export function UploadZone({ onPurchase }: { onPurchase: () => void }) {
 
   return (
     <div className="relative">
-      {/* Glow Effect */}
-      <div className="absolute inset-0 bg-primary/5 blur-3xl rounded-3xl" />
-      
       <button
         type="button"
         onClick={onPurchase}
@@ -39,15 +36,15 @@ export function UploadZone({ onPurchase }: { onPurchase: () => void }) {
         className={`
           relative w-full border-2 border-dashed rounded-2xl p-12 transition-all duration-300 cursor-pointer text-left
           ${isDragging 
-            ? "border-primary bg-primary/10 scale-[1.02]" 
-            : "border-border hover:border-primary/50 hover:bg-card/50"
+            ? "border-primary bg-primary/5 scale-[1.02]" 
+            : "border-[#d4d4d8] bg-[#f4f4f5] hover:border-primary/50 hover:bg-secondary/70"
           }
         `}
       >
         <div className="flex flex-col items-center gap-6">
           <div className={`
             w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300
-            ${isDragging ? "bg-primary text-primary-foreground scale-110" : "bg-primary/10 text-primary"}
+            ${isDragging ? "btn-gradient scale-110" : "bg-primary/10 text-primary"}
           `}>
             <Upload className="w-10 h-10" />
           </div>

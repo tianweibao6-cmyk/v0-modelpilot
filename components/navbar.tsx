@@ -38,7 +38,7 @@ export function Navbar({ onPurchase }: NavbarProps) {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button onClick={onPurchase} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button onClick={onPurchase} className="btn-gradient border-0">
               立即解锁
             </Button>
           </div>
@@ -82,7 +82,7 @@ export function Navbar({ onPurchase }: NavbarProps) {
                   setIsMenuOpen(false);
                   onPurchase();
                 }}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
+                className="btn-gradient border-0 w-full"
               >
                 立即解锁
               </Button>

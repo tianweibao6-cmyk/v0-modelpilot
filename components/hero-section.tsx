@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, BookOpen, Lightbulb } from "lucide-react";
 
-export function HeroSection() {
+export function HeroSection({ onPurchase }: { onPurchase: () => void }) {
   return (
     <section className="relative pt-32 pb-20 px-4 overflow-hidden">
       {/* Background Effects */}
@@ -34,14 +34,12 @@ export function HeroSection() {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Button 
-            asChild
+            onClick={onPurchase}
             size="lg" 
             className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-6 text-lg gap-2"
           >
-            <a href="#upload">
-              立即上传赛题
-              <ArrowRight className="w-5 h-5" />
-            </a>
+            立即上传赛题
+            <ArrowRight className="w-5 h-5" />
           </Button>
           <Button 
             asChild

@@ -1,13 +1,23 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { X, QrCode, Mail, AlertCircle } from "lucide-react";
+import { X, ShieldCheck, FileText, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const PAYMENT_URL = "https://mzf.mapay.cc/cashier/e2d6d7e799";
+
+const includedItems = [
+  "审题拆解",
+  "建模路线",
+  "代码框架",
+  "图表建议",
+  "论文结构参考",
+];
 
 export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
@@ -34,6 +44,10 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
     }
   };
 
+  const handlePay = () => {
+    window.open(PAYMENT_URL, "_blank", "noopener,noreferrer");
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -46,6 +60,7 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         {/* Close Button */}
         <button
           onClick={onClose}
+          aria-label="关闭弹窗"
           className="absolute top-4 right-4 p-2 rounded-full hover:bg-secondary transition-colors"
         >
           <X className="w-5 h-5 text-muted-foreground" />
@@ -55,83 +70,54 @@ export function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         <div className="p-8 md:p-10">
           {/* Icon */}
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-8 h-8 text-primary" />
+            <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
 
           {/* Title */}
           <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-3 text-balance">
-            支付网关维护中
+            解锁 SigmaPilot 内测体验
           </h2>
-          
-          <p className="text-muted-foreground text-center mb-8 text-pretty">
-            为确保交易安全，当前支付网关正在升级维护。请通过以下方式完成支付：
+
+          <p className="text-muted-foreground text-center mb-8 text-pretty leading-relaxed">
+            支付 <span className="text-primary font-semibold">39 元</span> 后，可获得一次 AI 建模启动方案生成服务，包括审题拆解、建模路线、代码框架、图表建议和论文结构参考。
           </p>
 
-          {/* Payment Instructions */}
-          <div className="space-y-6">
-            {/* Step 1 */}
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-primary font-semibold text-sm">1</span>
-              </div>
-              <div>
-                <h3 className="text-foreground font-medium mb-1">扫码支付</h3>
-                <p className="text-muted-foreground text-sm">
-                  使用微信或支付宝扫描下方收款码，支付 <span className="text-primary font-semibold">¥39</span>
-                </p>
-              </div>
+          {/* Included Items */}
+          <div className="rounded-2xl bg-secondary/40 border border-border p-5 mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">本次服务包含</span>
             </div>
-
-            {/* QR Code Placeholder */}
-            <div className="flex justify-center gap-6">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-28 h-28 rounded-xl bg-secondary/50 border border-border flex items-center justify-center">
-                  <QrCode className="w-16 h-16 text-muted-foreground/50" />
-                </div>
-                <span className="text-xs text-muted-foreground">微信支付</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-28 h-28 rounded-xl bg-secondary/50 border border-border flex items-center justify-center">
-                  <QrCode className="w-16 h-16 text-muted-foreground/50" />
-                </div>
-                <span className="text-xs text-muted-foreground">支付宝</span>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-primary font-semibold text-sm">2</span>
-              </div>
-              <div>
-                <h3 className="text-foreground font-medium mb-1">填写备注</h3>
-                <p className="text-muted-foreground text-sm">
-                  在付款备注中留下您的 <span className="text-primary font-medium">接收邮箱</span>，我们将在 30 分钟内发送分析报告
-                </p>
-              </div>
-            </div>
-
-            {/* Email Reminder */}
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
-              <Mail className="w-5 h-5 text-primary flex-shrink-0" />
-              <p className="text-sm text-foreground">
-                <span className="font-medium">重要提示：</span>
-                <span className="text-muted-foreground"> 请务必在备注中填写正确的邮箱地址，否则无法收到分析结果</span>
-              </p>
+            <div className="flex flex-wrap gap-2">
+              {includedItems.map((item) => (
+                <span
+                  key={item}
+                  className="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm text-foreground"
+                >
+                  {item}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-border">
-            <Button
-              onClick={onClose}
-              variant="outline"
-              className="w-full py-5 border-border hover:bg-secondary"
-            >
-              我已完成支付
-            </Button>
-            <p className="text-center text-xs text-muted-foreground mt-4">
-              如有疑问，请联系客服：support@modelpilot.ai
+          {/* Pay Button */}
+          <Button
+            onClick={handlePay}
+            className="w-full py-6 text-lg font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            立即支付 39 元
+          </Button>
+
+          {/* Payment Notice */}
+          <p className="text-center text-sm text-muted-foreground mt-5 leading-relaxed">
+            支付完成后，请保留支付截图。当前为内测阶段，服务将在人工核验后开通。
+          </p>
+
+          {/* Disclaimer */}
+          <div className="mt-6 pt-6 border-t border-border flex items-start gap-3">
+            <AlertCircle className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              SigmaPilot 仅用于学习辅助、思路启发和代码参考，不提供代写服务，不承诺竞赛结果。
             </p>
           </div>
         </div>

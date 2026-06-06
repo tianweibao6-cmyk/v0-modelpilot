@@ -69,11 +69,11 @@ export function PricingCard({ onPurchase }: PricingCardProps) {
         <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <span className="flex items-center gap-1">
             <Check className="w-4 h-4 text-primary" />
-            安全支付
+            内测体验
           </span>
           <span className="flex items-center gap-1">
             <Check className="w-4 h-4 text-primary" />
-            即时交付
+            人工核验开通
           </span>
         </div>
       </div>

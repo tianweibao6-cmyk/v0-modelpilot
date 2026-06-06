@@ -19,8 +19,8 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
+      <Navbar onPurchase={handlePurchase} />
+      <HeroSection onPurchase={handlePurchase} />
       
       {/* Upload Section */}
       <section id="upload" className="py-24 px-4">
@@ -33,7 +33,7 @@ export default function Home() {
               拖拽或点击上传赛题文件，SigmaPilot 将为你生成审题拆解、建模思路和代码框架参考
             </p>
           </div>
-          <UploadZone />
+          <UploadZone onPurchase={handlePurchase} />
         </div>
       </section>
 
@@ -81,7 +81,7 @@ export default function Home() {
             <div>
               <h3 className="text-foreground font-semibold mb-2">免责声明</h3>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                本工具仅用于学习辅助、思路启发和代码参考，不提供代写服务，不承诺竞赛结果。
+                SigmaPilot 仅用于学习辅助、思路启发和代码参考，不提供代写服务，不承诺竞赛结果。
                 所有生成内容仅供学习参考，用户需自行判断和验证其准确性与适用性。
                 使用本工具所产生的任何结果，均由用户自行承担责任。
               </p>

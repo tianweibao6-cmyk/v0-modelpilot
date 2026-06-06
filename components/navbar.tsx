@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Sparkles } from "lucide-react";
 
-export function Navbar() {
+interface NavbarProps {
+  onPurchase: () => void;
+}
+
+export function Navbar({ onPurchase }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -34,8 +38,8 @@ export function Navbar() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <a href="#pricing">立即解锁</a>
+            <Button onClick={onPurchase} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              立即解锁
             </Button>
           </div>
 
@@ -73,8 +77,14 @@ export function Navbar() {
               >
                 定价
               </a>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 w-full">
-                <a href="#pricing" onClick={() => setIsMenuOpen(false)}>立即解锁</a>
+              <Button
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  onPurchase();
+                }}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
+              >
+                立即解锁
               </Button>
             </div>
           </div>

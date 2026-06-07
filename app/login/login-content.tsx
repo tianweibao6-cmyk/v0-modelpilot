@@ -17,14 +17,26 @@ export function LoginContent() {
   const searchParams = useSearchParams()
   const supabase = createClient()
 
+  const errorParam = searchParams.get("error")
+  const verifiedParam = searchParams.get("verified")
+
+  const initialError =
+    errorParam === "callback"
+      ? "邮箱验证链接无效或已过期，请重新注册或重新发送验证邮件。"
+      : errorParam === "expired"
+        ? "登录状态已失效，请重新登录。"
+        : errorParam
+          ? "登录状态已失效，请重新登录。"
+          : null
+
+  const initialMessage = verifiedParam === "true" ? "邮箱验证成功，请登录。" : null
+
   const [tab, setTab] = useState<"login" | "signup">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(
-    searchParams.get("error") ? "登录状态已失效，请重新登录" : null,
-  )
-  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(initialError)
+  const [message, setMessage] = useState<string | null>(initialMessage)
 
   const redirectTarget = searchParams.get("redirect") ?? "/dashboard"
 
@@ -73,7 +85,7 @@ export function LoginContent() {
       router.push(redirectTarget)
       router.refresh()
     } else {
-      setMessage("注册成功！我们已向你的邮箱发送确认邮件，请确认后登录。")
+      setMessage("验证邮件已发送，请打开邮箱点击确认链接，完成验证后再登录。")
       setTab("login")
       setLoading(false)
     }

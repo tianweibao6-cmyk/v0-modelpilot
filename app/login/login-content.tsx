@@ -80,6 +80,16 @@ export function LoginContent() {
       return
     }
 
+    // 开启邮箱确认时，已注册邮箱不会返回错误，而是返回 identities 为空的伪用户。
+    // 通过该特征判断邮箱是否已被注册，避免错误地显示“注册成功”。
+    const identities = data.user?.identities
+    if (identities && identities.length === 0) {
+      setError("该邮箱已注册，请直接登录")
+      setTab("login")
+      setLoading(false)
+      return
+    }
+
     // 如果开启了邮箱确认，session 为空，需要提示去邮箱确认
     if (data.session) {
       router.push(redirectTarget)
@@ -222,11 +232,44 @@ export function LoginContent() {
 }
 
 function translateError(message: string): string {
+  if (!message) return "操作失败，请稍后再试"
+
+  // 完整匹配常见错误
   const map: Record<string, string> = {
     "Invalid login credentials": "邮箱或密码错误，请重试",
     "User already registered": "该邮箱已注册，请直接登录",
-    "Email not confirmed": "邮箱尚未确认，请先到邮箱完成确认",
+    "Email not confirmed": "邮箱尚未验证，请先到邮箱完成验证后再登录",
     "Password should be at least 6 characters": "密码至少需要 6 位",
+    "Signup requires a valid password": "请输入有效的密码",
+    "Unable to validate email address: invalid format": "邮箱格式不正确，请检查后重试",
+    "Anonymous sign-ins are disabled": "请填写邮箱和密码后再提交",
   }
-  return map[message] ?? message
+  if (map[message]) return map[message]
+
+  // 模糊匹配（Supabase 错误文案可能带前后缀或大小写差异）
+  const lower = message.toLowerCase()
+  if (lower.includes("already registered") || lower.includes("already been registered")) {
+    return "该邮箱已注册，请直接登录"
+  }
+  if (lower.includes("invalid login credentials")) {
+    return "邮箱或密码错误，请重试"
+  }
+  if (lower.includes("email not confirmed")) {
+    return "邮箱尚未验证，请先到邮箱完成验证后再登录"
+  }
+  if (lower.includes("rate limit") || lower.includes("too many") || lower.includes("for security purposes")) {
+    return "操作过于频繁，请稍后再试"
+  }
+  if (lower.includes("password")) {
+    return "密码不符合要求，请至少使用 6 位字符"
+  }
+  if (lower.includes("invalid format") || lower.includes("invalid email") || lower.includes("validate email")) {
+    return "邮箱格式不正确，请检查后重试"
+  }
+  if (lower.includes("network") || lower.includes("fetch")) {
+    return "网络连接异常，请检查网络后重试"
+  }
+
+  // 兜底：避免直接暴露英文报错
+  return "操作失败，请稍后再试"
 }

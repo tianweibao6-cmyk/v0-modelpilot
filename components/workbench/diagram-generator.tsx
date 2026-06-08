@@ -13,39 +13,37 @@ interface DiagramGeneratorProps {
   title: string;
   description: string;
   inputPlaceholder: string;
-  optionLabel: string;
-  options: DiagramOption[];
+  typeLabel: string;
+  typeOptions: DiagramOption[];
+  styleLabel: string;
+  styleOptions: DiagramOption[];
   generateLabel: string;
-  /** 免费体验额度用尽后触发付费弹窗 */
-  onLocked?: () => void;
+  priceLabel: string;
+  /** 触发付费弹窗 */
+  onPay: () => void;
 }
 
 export function DiagramGenerator({
   title,
   description,
   inputPlaceholder,
-  optionLabel,
-  options,
+  typeLabel,
+  typeOptions,
+  styleLabel,
+  styleOptions,
   generateLabel,
-  onLocked,
+  priceLabel,
+  onPay,
 }: DiagramGeneratorProps) {
   const [text, setText] = useState("");
-  const [selected, setSelected] = useState(options[0]?.id ?? "");
+  const [selectedType, setSelectedType] = useState(typeOptions[0]?.id ?? "");
+  const [selectedStyle, setSelectedStyle] = useState(styleOptions[0]?.id ?? "");
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
-  const [usedFree, setUsedFree] = useState(false);
 
   const handleGenerate = () => {
     if (!text.trim()) return;
-    // 免费体验仅 1 次，之后触发付费
-    if (usedFree && onLocked) {
-      onLocked();
-      return;
-    }
-    setStatus("generating");
-    setTimeout(() => {
-      setStatus("done");
-      setUsedFree(true);
-    }, 1800);
+    // 论文图示每次生成均需付费
+    onPay();
   };
 
   return (
@@ -68,14 +66,14 @@ export function DiagramGenerator({
               className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring"
             />
 
-            <p className="text-sm font-medium text-foreground mt-5 mb-3">{optionLabel}</p>
+            <p className="text-sm font-medium text-foreground mt-5 mb-3">{typeLabel}</p>
             <div className="flex flex-wrap gap-2">
-              {options.map((opt) => (
+              {typeOptions.map((opt) => (
                 <button
                   key={opt.id}
-                  onClick={() => setSelected(opt.id)}
+                  onClick={() => setSelectedType(opt.id)}
                   className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    selected === opt.id
+                    selectedType === opt.id
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-background text-muted-foreground hover:bg-secondary"
                   }`}
@@ -85,10 +83,32 @@ export function DiagramGenerator({
               ))}
             </div>
 
+            <p className="text-sm font-medium text-foreground mt-5 mb-3">{styleLabel}</p>
+            <div className="flex flex-wrap gap-2">
+              {styleOptions.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSelectedStyle(opt.id)}
+                  className={`px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    selectedStyle === opt.id
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-background text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-6 mb-3">
+              <span className="text-sm text-muted-foreground">价格</span>
+              <span className="text-lg font-extrabold text-primary">{priceLabel}</span>
+            </div>
+
             <Button
               onClick={handleGenerate}
               disabled={!text.trim() || status === "generating"}
-              className="w-full py-5 btn-gradient border-0 gap-2 mt-6"
+              className="w-full py-5 btn-gradient border-0 gap-2"
             >
               {status === "generating" ? (
                 <>
@@ -102,11 +122,6 @@ export function DiagramGenerator({
                 </>
               )}
             </Button>
-            {!usedFree && (
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                首次生成免费体验，之后 ¥9.9 起
-              </p>
-            )}
           </div>
         </div>
 

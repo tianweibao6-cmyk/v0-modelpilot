@@ -6,11 +6,7 @@ import {
   LayoutGrid,
   Package,
   Workflow,
-  GitBranch,
   FolderOpen,
-  Download,
-  Receipt,
-  Tag,
   Sparkles,
   LogIn,
 } from "lucide-react";
@@ -18,12 +14,8 @@ import {
 export type WorkbenchView =
   | "overview"
   | "project-pack"
-  | "mechanism"
-  | "flowchart"
-  | "projects"
-  | "downloads"
-  | "orders"
-  | "pricing";
+  | "diagram"
+  | "projects";
 
 interface NavItem {
   id: WorkbenchView;
@@ -34,12 +26,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: "overview", label: "工作台", icon: LayoutGrid },
   { id: "project-pack", label: "完整项目包", icon: Package },
-  { id: "mechanism", label: "机制图生成", icon: Workflow },
-  { id: "flowchart", label: "流程图生成", icon: GitBranch },
+  { id: "diagram", label: "论文图示", icon: Workflow },
   { id: "projects", label: "我的项目", icon: FolderOpen },
-  { id: "downloads", label: "下载中心", icon: Download },
-  { id: "orders", label: "订单记录", icon: Receipt },
-  { id: "pricing", label: "定价说明", icon: Tag },
 ];
 
 interface WorkbenchSidebarProps {

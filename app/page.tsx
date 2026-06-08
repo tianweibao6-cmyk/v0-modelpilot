@@ -13,8 +13,7 @@ import {
 import { OverviewView } from "@/components/workbench/overview-view";
 import { ProjectPackView } from "@/components/workbench/project-pack-view";
 import { DiagramGenerator } from "@/components/workbench/diagram-generator";
-import { PlaceholderView } from "@/components/workbench/placeholder-view";
-import { PricingView } from "@/components/workbench/pricing-view";
+import { ProjectsView } from "@/components/workbench/projects-view";
 
 type PaymentConfig = {
   title: string;
@@ -42,12 +41,19 @@ const projectPackPayment: PaymentConfig = {
 };
 
 const diagramPayment: PaymentConfig = {
-  title: "解锁更多图示生成",
+  title: "解锁论文图示生成",
   description:
-    "免费体验额度已用完。支付 9.9 元可继续生成机制图、流程图、技术路线图等图示，并下载 PNG / SVG。",
+    "支付 9.9 元生成一次论文图示，可选研究框架图、技术路线图、机制路径图、模型流程图和变量关系图，并下载 PNG / SVG。",
   priceLabel: "9.9 元",
   payButtonLabel: "立即支付 9.9 元",
-  items: ["机制图", "流程图", "技术路线图", "研究框架图", "变量关系图"],
+  items: [
+    "研究框架图",
+    "技术路线图",
+    "机制路径图",
+    "模型流程图",
+    "变量关系图",
+    "PNG / SVG 下载",
+  ],
 };
 
 export default function Home() {
@@ -80,8 +86,8 @@ export default function Home() {
     setIsPaymentOpen(true);
   }, [user, router]);
 
-  // 机制图/流程图免费额度用尽后的付费
-  const handleDiagramLocked = useCallback(() => {
+  // 论文图示：每次生成均需付费，需先登录
+  const handleDiagramPay = useCallback(() => {
     if (!user) {
       router.push("/login?redirect=/");
       return;
@@ -100,58 +106,38 @@ export default function Home() {
         return (
           <OverviewView
             onProjectPack={handleProjectPack}
-            onMechanism={() => setView("mechanism")}
-            onNavigate={handleSelect}
+            onDiagram={() => setView("diagram")}
           />
         );
       case "project-pack":
         return <ProjectPackView onSubmit={handleProjectPack} />;
-      case "mechanism":
+      case "diagram":
         return (
           <DiagramGenerator
-            title="机制图生成"
-            description="粘贴论文摘要、研究主题或方法描述，快速生成精美机制图与技术路线图"
-            inputPlaceholder="粘贴论文摘要、研究主题或方法描述..."
-            optionLabel="选择图示类型"
-            generateLabel="生成图示"
-            onLocked={handleDiagramLocked}
-            options={[
-              { id: "mechanism", label: "机制图" },
-              { id: "roadmap", label: "技术路线图" },
+            title="论文图示生成"
+            description="粘贴论文摘要、研究主题或方法描述，快速生成论文常用图示。"
+            inputPlaceholder="粘贴论文摘要、研究主题、方法描述或模型步骤..."
+            typeLabel="图示类型"
+            typeOptions={[
               { id: "framework", label: "研究框架图" },
+              { id: "roadmap", label: "技术路线图" },
+              { id: "mechanism", label: "机制路径图" },
+              { id: "model-flow", label: "模型流程图" },
               { id: "variable", label: "变量关系图" },
             ]}
-          />
-        );
-      case "flowchart":
-        return (
-          <DiagramGenerator
-            title="流程图生成"
-            description="描述流程、算法步骤或模型步骤，快速生成清晰的流程图"
-            inputPlaceholder="描述流程、算法步骤或模型步骤..."
-            optionLabel="选择风格"
-            generateLabel="生成流程图"
-            onLocked={handleDiagramLocked}
-            options={[
+            styleLabel="图示风格"
+            styleOptions={[
               { id: "academic", label: "学术简洁" },
               { id: "tech-blue", label: "科技蓝" },
               { id: "mono", label: "黑白论文风" },
             ]}
+            generateLabel="生成图示"
+            priceLabel="¥9.9 / 次"
+            onPay={handleDiagramPay}
           />
         );
       case "projects":
-        return <PlaceholderView type="projects" user={user} />;
-      case "downloads":
-        return <PlaceholderView type="downloads" user={user} />;
-      case "orders":
-        return <PlaceholderView type="orders" user={user} />;
-      case "pricing":
-        return (
-          <PricingView
-            onProjectPack={handleProjectPack}
-            onMechanism={() => setView("mechanism")}
-          />
-        );
+        return <ProjectsView user={user} />;
       default:
         return null;
     }

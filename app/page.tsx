@@ -4,19 +4,64 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { UploadZone } from "@/components/upload-zone";
-import { FeatureCards } from "@/components/feature-cards";
-import { PricingCard } from "@/components/pricing-card";
 import { PaymentModal } from "@/components/payment-modal";
-import { HeroSection } from "@/components/hero-section";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
-import { AlertCircle } from "lucide-react";
+import {
+  WorkbenchSidebar,
+  WorkbenchMobileNav,
+  type WorkbenchView,
+} from "@/components/workbench-sidebar";
+import { OverviewView } from "@/components/workbench/overview-view";
+import { ProjectPackView } from "@/components/workbench/project-pack-view";
+import { DiagramGenerator } from "@/components/workbench/diagram-generator";
+import { ProjectsView } from "@/components/workbench/projects-view";
+
+type PaymentConfig = {
+  title: string;
+  description: string;
+  priceLabel: string;
+  payButtonLabel: string;
+  items: string[];
+};
+
+const projectPackPayment: PaymentConfig = {
+  title: "解锁 SigmaPilot 完整项目包",
+  description:
+    "支付 299 元后，将为你生成一套完整的建模报告初稿与配套材料，包括论文初稿、Python 代码、图表文件与质量检查报告。",
+  priceLabel: "299 元",
+  payButtonLabel: "立即支付 299 元",
+  items: [
+    "Word / LaTeX 论文初稿",
+    "Python 代码",
+    "图表文件",
+    "中间结果表格",
+    "参考文献与附录",
+    "AI 使用说明",
+    "质量检查报告",
+  ],
+};
+
+const diagramPayment: PaymentConfig = {
+  title: "解锁论文图示生成",
+  description:
+    "支付 9.9 元生成一次论文图示，可选研究框架图、技术路线图、机制路径图、模型流程图和变量关系图，并下载 PNG / SVG。",
+  priceLabel: "9.9 元",
+  payButtonLabel: "立即支付 9.9 元",
+  items: [
+    "研究框架图",
+    "技术路线图",
+    "机制路径图",
+    "模型流程图",
+    "变量关系图",
+    "PNG / SVG 下载",
+  ],
+};
 
 export default function Home() {
   const router = useRouter();
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [view, setView] = useState<WorkbenchView>("overview");
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig>(projectPackPayment);
 
   useEffect(() => {
     const supabase = createClient();
@@ -31,94 +76,99 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handlePurchase = useCallback(() => {
-    // 购买/上传/解锁前需先登录
+  // 完整项目包：需先登录
+  const handleProjectPack = useCallback(() => {
     if (!user) {
       router.push("/login?redirect=/");
       return;
     }
-    setIsPaymentModalOpen(true);
+    setPaymentConfig(projectPackPayment);
+    setIsPaymentOpen(true);
   }, [user, router]);
 
+  // 论文图示：每次生成均需付费，需先登录
+  const handleDiagramPay = useCallback(() => {
+    if (!user) {
+      router.push("/login?redirect=/");
+      return;
+    }
+    setPaymentConfig(diagramPayment);
+    setIsPaymentOpen(true);
+  }, [user, router]);
+
+  const handleSelect = useCallback((next: WorkbenchView) => {
+    setView(next);
+  }, []);
+
+  const renderView = () => {
+    switch (view) {
+      case "overview":
+        return (
+          <OverviewView
+            onProjectPack={handleProjectPack}
+            onDiagram={() => setView("diagram")}
+          />
+        );
+      case "project-pack":
+        return <ProjectPackView onSubmit={handleProjectPack} />;
+      case "diagram":
+        return (
+          <DiagramGenerator
+            title="论文图示生成"
+            description="粘贴论文摘要、研究主题或方法描述，快速生成论文常用图示。"
+            inputPlaceholder="粘贴论文摘要、研究主题、方法描述或模型步骤..."
+            typeLabel="图示类型"
+            typeOptions={[
+              { id: "framework", label: "研究框架图" },
+              { id: "roadmap", label: "技术路线图" },
+              { id: "mechanism", label: "机制路径图" },
+              { id: "model-flow", label: "模型流程图" },
+              { id: "variable", label: "变量关系图" },
+            ]}
+            styleLabel="图示风格"
+            styleOptions={[
+              { id: "academic", label: "学术简洁" },
+              { id: "tech-blue", label: "科技蓝" },
+              { id: "mono", label: "黑白论文风" },
+            ]}
+            generateLabel="生成图示"
+            priceLabel="¥9.9 / 次"
+            onPay={handleDiagramPay}
+          />
+        );
+      case "projects":
+        return <ProjectsView user={user} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar onPurchase={handlePurchase} user={user} />
-      <HeroSection onPurchase={handlePurchase} />
-      
-      {/* Upload Section */}
-      <section id="upload" className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
-              上传赛题，获取建模参考
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-pretty">
-              拖拽或点击上传赛题文件，SigmaPilot 将为你生成审题拆解、建模思路和代码框架参考
-            </p>
-          </div>
-          <UploadZone onPurchase={handlePurchase} />
-        </div>
-      </section>
+    <div className="min-h-screen bg-background flex">
+      <WorkbenchSidebar active={view} onSelect={handleSelect} user={user} />
 
-      {/* Features Section */}
-      <section id="features" className="py-24 px-4 bg-secondary/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-primary text-sm font-semibold tracking-wider uppercase">
-              核心功能
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-4 mb-4 text-balance">
-              全流程建模学习辅助
-            </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-pretty">
-              六大功能模块，从审题到论文结构，提供全面的学习参考
-            </p>
-          </div>
-          <FeatureCards />
-        </div>
-      </section>
+      <div className="flex-1 flex flex-col min-w-0">
+        <WorkbenchMobileNav active={view} onSelect={handleSelect} />
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4">
-        <div className="max-w-xl mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-primary text-sm font-semibold tracking-wider uppercase">
-              定价方案
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-4 mb-4 text-balance">
-              简单透明的定价
-            </h2>
-            <p className="text-muted-foreground text-lg text-pretty">
-              无需订阅，无隐藏费用，39 元获取完整分析报告
-            </p>
-          </div>
-          <PricingCard onPurchase={handlePurchase} />
-        </div>
-      </section>
+        <main className="flex-1 px-5 md:px-8 py-8">{renderView()}</main>
 
-      {/* Disclaimer Section */}
-      <section className="py-12 px-4 border-t border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-start gap-4 p-6 rounded-xl bg-secondary/50 border border-border shadow-soft">
-            <AlertCircle className="w-6 h-6 text-muted-foreground flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-foreground font-semibold mb-2">免责声明</h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                SigmaPilot 仅用于学习辅助、思路启发和代码参考，不提供代写服务，不承诺竞赛结果。
-                所有生成内容仅供学习参考，用户需自行判断和验证其准确性与适用性。
-                使用本工具所产生的任何结果，均由用户自行承担责任。
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+        {/* 页脚免责声明（弱视觉） */}
+        <footer className="border-t border-border px-5 md:px-8 py-6">
+          <p className="text-xs text-muted-foreground/80 leading-relaxed max-w-4xl">
+            SigmaPilot 仅用于学习辅助、思路启发、代码参考和报告草稿生成，不提供代写服务，不承诺竞赛结果。用户需自行遵守所在学校、赛事和平台规则。
+          </p>
+        </footer>
+      </div>
 
-      <Footer />
-
-      <PaymentModal 
-        isOpen={isPaymentModalOpen} 
-        onClose={() => setIsPaymentModalOpen(false)} 
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        onClose={() => setIsPaymentOpen(false)}
+        title={paymentConfig.title}
+        description={paymentConfig.description}
+        priceLabel={paymentConfig.priceLabel}
+        payButtonLabel={paymentConfig.payButtonLabel}
+        items={paymentConfig.items}
       />
-    </main>
+    </div>
   );
 }

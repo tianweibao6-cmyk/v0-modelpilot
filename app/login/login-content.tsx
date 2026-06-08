@@ -2,15 +2,16 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sparkles, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Sparkles, Loader2, AlertCircle, CheckCircle2, Mail, ArrowLeft } from "lucide-react"
+
+const RESEND_COOLDOWN = 60
 
 export function LoginContent() {
   const router = useRouter()
@@ -18,87 +19,100 @@ export function LoginContent() {
   const supabase = createClient()
 
   const errorParam = searchParams.get("error")
-  const verifiedParam = searchParams.get("verified")
 
   const initialError =
-    errorParam === "callback"
-      ? "邮箱验证链接无效或已过期，请重新注册或重新发送验证邮件。"
-      : errorParam === "expired"
-        ? "登录状态已失效，请重新登录。"
-        : errorParam
-          ? "登录状态已失效，请重新登录。"
-          : null
+    errorParam === "expired" || errorParam
+      ? "登录状态已失效，请重新登录。"
+      : null
 
-  const initialMessage = verifiedParam === "true" ? "邮箱验证成功，请登录。" : null
-
-  const [tab, setTab] = useState<"login" | "signup">("login")
+  // 流程阶段：email = 输入邮箱；otp = 输入验证码
+  const [step, setStep] = useState<"email" | "otp">("email")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [otp, setOtp] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(initialError)
-  const [message, setMessage] = useState<string | null>(initialMessage)
+  const [message, setMessage] = useState<string | null>(null)
+  const [cooldown, setCooldown] = useState(0)
 
   const redirectTarget = searchParams.get("redirect") ?? "/dashboard"
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // 重新发送验证码倒计时
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldown])
+
+  // 发送验证码
+  const sendCode = async () => {
     setLoading(true)
     setError(null)
     setMessage(null)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    })
+
+    setLoading(false)
 
     if (error) {
       setError(translateError(error.message))
-      setLoading(false)
-      return
+      return false
     }
-
-    router.push(redirectTarget)
-    router.refresh()
+    return true
   }
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const ok = await sendCode()
+    if (ok) {
+      setStep("otp")
+      setOtp("")
+      setMessage("验证码已发送至你的邮箱，请输入邮件中的 6 位验证码完成登录/注册。")
+      setCooldown(RESEND_COOLDOWN)
+    }
+  }
+
+  const handleResend = async () => {
+    if (cooldown > 0 || loading) return
+    const ok = await sendCode()
+    if (ok) {
+      setMessage("验证码已重新发送，请查收邮箱。")
+      setCooldown(RESEND_COOLDOWN)
+    }
+  }
+
+  // 校验验证码
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     setMessage(null)
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      password,
-      options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-          `${window.location.origin}/auth/callback`,
-      },
+      token: otp.trim(),
+      type: "email",
     })
 
     if (error) {
       setError(translateError(error.message))
+      setOtp("")
       setLoading(false)
       return
     }
 
-    // 开启邮箱确认时，已注册邮箱不会返回错误，而是返回 identities 为空的伪用户。
-    // 通过该特征判断邮箱是否已被注册，避免错误地显示“注册成功”。
-    const identities = data.user?.identities
-    if (identities && identities.length === 0) {
-      setError("该邮箱已注册，请直接登录")
-      setTab("login")
-      setLoading(false)
-      return
-    }
+    // 验证成功：自动登录并跳转
+    router.push(redirectTarget)
+    router.refresh()
+  }
 
-    // 如果开启了邮箱确认，session 为空，需要提示去邮箱确认
-    if (data.session) {
-      router.push(redirectTarget)
-      router.refresh()
-    } else {
-      setMessage("验证邮件已发送，请打开邮箱点击确认链接，完成验证后再登录。")
-      setTab("login")
-      setLoading(false)
-    }
+  const handleBackToEmail = () => {
+    setStep("email")
+    setOtp("")
+    setError(null)
+    setMessage(null)
   }
 
   return (
@@ -115,10 +129,12 @@ export function LoginContent() {
         <div className="rounded-2xl border border-border bg-card shadow-soft-lg p-6 md:p-8">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-bold text-foreground mb-2 text-balance">
-              欢迎使用 SigmaPilot
+              {step === "email" ? "欢迎使用 SigmaPilot" : "输入验证码"}
             </h1>
             <p className="text-muted-foreground text-sm text-pretty">
-              登录或注册以使用 AI 建模副驾驶
+              {step === "email"
+                ? "输入邮箱获取验证码，登录或注册 AI 建模副驾驶"
+                : `验证码已发送至 ${email}`}
             </p>
           </div>
 
@@ -136,84 +152,82 @@ export function LoginContent() {
             </div>
           )}
 
-          <Tabs value={tab} onValueChange={(v) => setTab(v as "login" | "signup")}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">登录</TabsTrigger>
-              <TabsTrigger value="signup">注册</TabsTrigger>
-            </TabsList>
+          {/* 第一步：邮箱输入 */}
+          {step === "email" && (
+            <form onSubmit={handleSendCode} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="login-email">邮箱</Label>
+                <Input
+                  id="login-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full btn-gradient border-0 py-6 text-base font-semibold gap-2"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    <Mail className="w-5 h-5" />
+                    发送验证码
+                  </>
+                )}
+              </Button>
+            </form>
+          )}
 
-            {/* 登录 */}
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="login-email">邮箱</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="login-password">密码</Label>
-                    <button
-                      type="button"
-                      onClick={() => setMessage("找回密码功能即将上线，请稍后再试。")}
-                      className="text-xs text-primary hover:underline"
-                    >
-                      忘记密码？
-                    </button>
-                  </div>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    placeholder="请输入密码"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full btn-gradient border-0 py-6 text-base font-semibold">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "登录"}
-                </Button>
-              </form>
-            </TabsContent>
+          {/* 第二步：验证码输入 */}
+          {step === "otp" && (
+            <form onSubmit={handleVerify} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="otp-code">6 位验证码</Label>
+                <Input
+                  id="otp-code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  placeholder="请输入邮件中的 6 位验证码"
+                  required
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  className="text-center text-lg tracking-[0.5em] font-semibold"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading || otp.length < 6}
+                className="w-full btn-gradient border-0 py-6 text-base font-semibold"
+              >
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "验证并登录"}
+              </Button>
 
-            {/* 注册 */}
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="signup-email">邮箱</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="signup-password">密码</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="至少 6 位密码"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full btn-gradient border-0 py-6 text-base font-semibold">
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "注册"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={handleBackToEmail}
+                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  更换邮箱
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={cooldown > 0 || loading}
+                  className="text-primary hover:underline disabled:text-muted-foreground disabled:no-underline disabled:cursor-not-allowed"
+                >
+                  {cooldown > 0 ? `重新发送（${cooldown}s）` : "重新发送验证码"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* 免责声明 */}
@@ -232,38 +246,17 @@ export function LoginContent() {
 }
 
 function translateError(message: string): string {
-  if (!message) return "操作失败，请稍后再试"
+  if (!message) return "操作失败，请稍后重试"
 
-  // 完整匹配常见错误
-  const map: Record<string, string> = {
-    "Invalid login credentials": "邮箱或密码错误，请重试",
-    "User already registered": "该邮箱已注册，请直接登录",
-    "Email not confirmed": "邮箱尚未验证，请先到邮箱完成验证后再登录",
-    "Password should be at least 6 characters": "密码至少需要 6 位",
-    "Signup requires a valid password": "请输入有效的密码",
-    "Unable to validate email address: invalid format": "邮箱格式不正确，请检查后重试",
-    "Anonymous sign-ins are disabled": "请填写邮箱和密码后再提交",
-  }
-  if (map[message]) return map[message]
-
-  // 模糊匹配（Supabase 错误文案可能带前后缀或大小写差异）
   const lower = message.toLowerCase()
-  if (lower.includes("already registered") || lower.includes("already been registered")) {
-    return "该邮箱已注册，请直接登录"
-  }
-  if (lower.includes("invalid login credentials")) {
-    return "邮箱或密码错误，请重试"
-  }
-  if (lower.includes("email not confirmed")) {
-    return "邮箱尚未验证，请先到邮箱完成验证后再登录"
+
+  if (lower.includes("expired") || lower.includes("invalid") || lower.includes("incorrect")) {
+    return "验证码错误或已过期"
   }
   if (lower.includes("rate limit") || lower.includes("too many") || lower.includes("for security purposes")) {
-    return "操作过于频繁，请稍后再试"
+    return "邮件发送太频繁，请稍后再试"
   }
-  if (lower.includes("password")) {
-    return "密码不符合要求，请至少使用 6 位字符"
-  }
-  if (lower.includes("invalid format") || lower.includes("invalid email") || lower.includes("validate email")) {
+  if (lower.includes("invalid format") || lower.includes("validate email") || lower.includes("invalid email")) {
     return "邮箱格式不正确，请检查后重试"
   }
   if (lower.includes("network") || lower.includes("fetch")) {
@@ -271,5 +264,5 @@ function translateError(message: string): string {
   }
 
   // 兜底：避免直接暴露英文报错
-  return "操作失败，请稍后再试"
+  return "操作失败，请稍后重试"
 }

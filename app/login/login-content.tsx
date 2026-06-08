@@ -69,7 +69,7 @@ export function LoginContent() {
     if (ok) {
       setStep("otp")
       setOtp("")
-      setMessage("验证码已发送至你的邮箱，请输入邮件中的 6 位验证码完成登录/注册。")
+      setMessage("验证码已发送至你的邮箱，请输入邮件中的验证码完成登录/注册。")
       setCooldown(RESEND_COOLDOWN)
     }
   }
@@ -187,13 +187,13 @@ export function LoginContent() {
           {step === "otp" && (
             <form onSubmit={handleVerify} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="otp-code">6 位验证码</Label>
+                <Label htmlFor="otp-code">8 位验证码</Label>
                 <Input
                   id="otp-code"
                   inputMode="numeric"
                   autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder="请输入邮件中的 6 位验证码"
+                  maxLength={8}
+                  placeholder="请输入 8 位邮箱验证码"
                   required
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
@@ -202,7 +202,7 @@ export function LoginContent() {
               </div>
               <Button
                 type="submit"
-                disabled={loading || otp.length < 6}
+                disabled={loading || otp.length < 8}
                 className="w-full btn-gradient border-0 py-6 text-base font-semibold"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "验证并登录"}

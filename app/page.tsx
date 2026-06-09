@@ -14,21 +14,22 @@ import { OverviewView } from "@/components/workbench/overview-view";
 import { ProjectPackView } from "@/components/workbench/project-pack-view";
 import { DiagramGenerator } from "@/components/workbench/diagram-generator";
 import { ProjectsView } from "@/components/workbench/projects-view";
+import type { ProductType } from "@/lib/products";
 
 type PaymentConfig = {
+  productType: ProductType;
   title: string;
   description: string;
   priceLabel: string;
-  payButtonLabel: string;
   items: string[];
 };
 
 const projectPackPayment: PaymentConfig = {
+  productType: "project_pack",
   title: "解锁 SigmaPilot 完整项目包",
   description:
     "支付 299 元后，将为你生成一套完整的建模报告初稿与配套材料，包括论文初稿、Python 代码、图表文件与质量检查报告。",
   priceLabel: "299 元",
-  payButtonLabel: "立即支付 299 元",
   items: [
     "Word / LaTeX 论文初稿",
     "Python 代码",
@@ -41,11 +42,11 @@ const projectPackPayment: PaymentConfig = {
 };
 
 const diagramPayment: PaymentConfig = {
+  productType: "diagram",
   title: "解锁论文图示生成",
   description:
     "支付 9.9 元生成一次论文图示，可选研究框架图、技术路线图、机制路径图、模型流程图和变量关系图，并下载 PNG / SVG。",
   priceLabel: "9.9 元",
-  payButtonLabel: "立即支付 9.9 元",
   items: [
     "研究框架图",
     "技术路线图",
@@ -98,6 +99,13 @@ export default function Home() {
 
   const handleSelect = useCallback((next: WorkbenchView) => {
     setView(next);
+  }, []);
+
+  // 支付成功后刷新用户态（套餐状态可能已变更）
+  const handlePaid = useCallback(async () => {
+    const supabase = createClient();
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user);
   }, []);
 
   const renderView = () => {
@@ -163,11 +171,12 @@ export default function Home() {
       <PaymentModal
         isOpen={isPaymentOpen}
         onClose={() => setIsPaymentOpen(false)}
+        productType={paymentConfig.productType}
         title={paymentConfig.title}
         description={paymentConfig.description}
         priceLabel={paymentConfig.priceLabel}
-        payButtonLabel={paymentConfig.payButtonLabel}
         items={paymentConfig.items}
+        onPaid={handlePaid}
       />
     </div>
   );

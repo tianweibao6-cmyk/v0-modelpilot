@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { verifyMapaySign } from "@/lib/mapay"
+import { verifyMapaySign, isPaidStatus, sameMoney } from "@/lib/mapay"
 import { getProduct } from "@/lib/products"
 
 export const dynamic = "force-dynamic"
@@ -26,8 +26,8 @@ export async function GET(request: Request) {
     return new NextResponse("fail", { status: 200 })
   }
 
-  // 2. 仅处理支付成功通知
-  if (params.trade_status !== "TRADE_SUCCESS") {
+  // 2. 仅处理支付成功通知（兼容 trade_status / status 两种字段）
+  if (!isPaidStatus(params)) {
     return new NextResponse("success", { status: 200 })
   }
 
@@ -53,10 +53,10 @@ export async function GET(request: Request) {
     return new NextResponse("success", { status: 200 })
   }
 
-  // 4. 校验金额与商品价目表一致，防止金额篡改
+  // 4. 校验金额与商品价目表一致，防止金额篡改（数值比较，避免 299 与 299.00 误判）
   const product = getProduct(order.product_type)
   const paidMoney = params.money
-  if (!product || paidMoney !== product.price) {
+  if (!product || !sameMoney(paidMoney, product.price)) {
     console.log(
       "[v0] notify amount mismatch:",
       paidMoney,

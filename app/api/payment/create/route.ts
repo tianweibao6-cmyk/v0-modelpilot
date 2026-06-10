@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { mapaySign, generateOutTradeNo } from "@/lib/mapay"
+import { mapaySign, generateOutTradeNo, normalizeMapayMApiUrl, isMapaySuccess, getMapayQrCode } from "@/lib/mapay"
 import { getProduct } from "@/lib/products"
 
 export const dynamic = "force-dynamic"
@@ -69,15 +69,21 @@ export async function POST(request: Request) {
 
     // 5. 请求码支付 mapi.php 获取二维码
     const form = new URLSearchParams(params)
-    const payRes = await fetch(apiUrl, {
+    const payRes = await fetch(normalizeMapayMApiUrl(apiUrl), {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: form.toString(),
     })
-    const payData = await payRes.json().catch(() => null)
+    const rawText = await payRes.text()
+    let payData: Record<string, any> | null = null
+    try {
+      payData = JSON.parse(rawText)
+    } catch {
+      payData = null
+    }
 
-    if (!payData || payData.code !== 1) {
-      console.log("[v0] mapay create failed:", JSON.stringify(payData))
+    if (!isMapaySuccess(payData)) {
+      console.log("[v0] mapay create failed, raw:", rawText.slice(0, 500))
       await admin
         .from("orders")
         .update({ status: "failed" })
@@ -88,8 +94,20 @@ export async function POST(request: Request) {
       )
     }
 
-    // 6. 保存二维码链接并返回
-    const qrCode = payData.qrcode || payData.code_url || ""
+    // 6. 提取二维码链接（兼容多种字段名）
+    const qrCode = getMapayQrCode(payData)
+    if (!qrCode) {
+      console.log("[v0] mapay no qrcode, raw:", rawText.slice(0, 500))
+      await admin
+        .from("orders")
+        .update({ status: "failed" })
+        .eq("out_trade_no", outTradeNo)
+      return NextResponse.json(
+        { error: "支付平台未返回二维码链接" },
+        { status: 502 },
+      )
+    }
+
     await admin
       .from("orders")
       .update({ qr_code: qrCode, trade_no: payData.trade_no || null })
